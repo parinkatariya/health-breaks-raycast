@@ -28,20 +28,15 @@ Regular breaks are essential for maintaining focus, reducing physical strain, an
 
 ## Installation
 
+> **Note**: This extension is currently in development and not yet published to the Raycast Store. You'll need to install it manually using the development setup below.
+
 ### Prerequisites
 
 - macOS (required for Raycast)
 - [Raycast](https://www.raycast.com/) installed on your Mac
-- Node.js 18+ and npm (for development)
+- Node.js 18+ and npm
 
-### Option 1: Install from Raycast Store (Recommended)
-
-1. Open Raycast
-2. Search for "Health Breaks" or navigate to Extensions
-3. Click "Install" on the Health Breaks Reminder & Tracker extension
-4. The extension will be automatically installed and ready to use
-
-### Option 2: Manual Installation (Development)
+### Installation Steps
 
 1. **Clone or download this repository**:
    ```bash
@@ -54,25 +49,28 @@ Regular breaks are essential for maintaining focus, reducing physical strain, an
    npm install
    ```
 
-3. **Build the extension**:
-   ```bash
-   npm run build
-   ```
-
-4. **Open in Raycast**:
-   - Open Raycast
-   - Go to Extensions → Import Extension
-   - Select the `health-breaks-raycast` directory
-   - The extension will be imported and available
-
-5. **For development** (with hot reload):
+3. **Start the development server**:
    ```bash
    npm run dev
+   ```
+   
+   This will:
+   - Automatically load the extension in Raycast in development mode
+   - Enable hot reload (changes will be reflected immediately)
+   - Keep the extension active while the dev server is running
+   
+   **Important**: Keep the terminal running `npm run dev` open while you want to use the extension. Closing it will stop the extension from working.
+
+4. **Optional: Build for production** (if you want to test the production build):
+   ```bash
+   npm run build
    ```
 
 ## Usage
 
 ### Getting Started
+
+> **Note**: Make sure `npm run dev` is running in a terminal before using the extension.
 
 1. **Open the extension**: Press `Cmd + Space` (or your Raycast shortcut), then type "Health Breaks"
 2. **Configure settings**: Open "Configure Settings" to customize:
@@ -130,6 +128,7 @@ Access preferences via Raycast → Extensions → Health Breaks → Preferences,
   - **Toast**: In-app notification within Raycast
   - **HUD**: macOS system notification (works better for menu bar)
 - **Break Types**: Comma-separated list of break types to track (default: 🧍‍♂️ Stand, 👀 Eye Rest, 💧 Water, 💪 Stretch, 🚶 Walk)
+- **Enable Confetti**: Show confetti animation when notifications appear (default: enabled)
 
 ## Development
 
