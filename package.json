@@ -1,0 +1,123 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "health-breaks",
+  "title": "Health Breaks Reminder & Tracker",
+  "description": "Reminds you to take health breaks and tracks your break activities",
+  "icon": "icon.png",
+  "author": "parin.katariya",
+  "categories": [
+    "Productivity"
+  ],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "index",
+      "title": "Health Breaks",
+      "description": "Track health breaks and view statistics",
+      "mode": "view"
+    },
+    {
+      "name": "track-break",
+      "title": "Track Break",
+      "description": "Log a health break activity",
+      "mode": "view"
+    },
+    {
+      "name": "view-stats",
+      "title": "View Statistics",
+      "description": "View your health break statistics",
+      "mode": "view"
+    },
+    {
+      "name": "configure",
+      "title": "Configure Settings",
+      "description": "Configure reminder intervals and preferences",
+      "mode": "view"
+    },
+    {
+      "name": "menubar",
+      "title": "Health Breaks Menubar",
+      "description": "Quick access to health breaks from the menu bar",
+      "mode": "menu-bar",
+      "interval": "1m"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "reminderInterval",
+      "type": "textfield",
+      "required": false,
+      "title": "Reminder Interval (minutes)",
+      "description": "How often to remind you to take a break (default: 60)",
+      "default": "60",
+      "placeholder": "60"
+    },
+    {
+      "name": "enableNotifications",
+      "type": "checkbox",
+      "required": false,
+      "title": "Enable Notifications",
+      "description": "Show system notifications for break reminders",
+      "default": true,
+      "label": "Enable"
+    },
+    {
+      "name": "notificationType",
+      "type": "dropdown",
+      "required": false,
+      "title": "Notification Type",
+      "description": "Choose between Toast (in-app) or HUD (macOS system notification)",
+      "default": "toast",
+      "data": [
+        {
+          "title": "HUD (macOS System Notification)",
+          "value": "hud"
+        },
+        {
+          "title": "Toast (In-App Notification)",
+          "value": "toast"
+        }
+      ]
+    },
+    {
+      "name": "breakTypes",
+      "type": "textfield",
+      "required": false,
+      "title": "Break Types (comma-separated)",
+      "description": "Types of breaks to track (default: 🧍‍♂️ Stand, 👀 Eye Rest, 💧 Water, 💪 Stretch, 🚶 Walk)",
+      "default": "🧍‍♂️ Stand, 👀 Eye Rest, 💧 Water, 💪 Stretch, 🚶 Walk",
+      "placeholder": "🧍‍♂️ Stand, 👀 Eye Rest, 💧 Water, 💪 Stretch, 🚶 Walk"
+    },
+    {
+      "name": "enableConfetti",
+      "type": "checkbox",
+      "required": false,
+      "title": "Enable Confetti",
+      "description": "Show confetti animation when notifications appear",
+      "default": true,
+      "label": "Enable"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.69.0",
+    "@raycast/utils": "^1.10.0",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.45",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3"
+  },
+  "scripts": {
+    "build": "npx ray build -e dist",
+    "dev": "npx ray develop",
+    "fix-lint": "npx ray lint --fix",
+    "lint": "npx ray lint",
+    "publish": "npx ray publish"
+  }
+}
