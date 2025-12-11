@@ -26,6 +26,9 @@ Regular breaks are essential for maintaining focus, reducing physical strain, an
 - 🎯 **Menu Bar Integration**: Quick access and break logging directly from your menu bar
 - 💾 **Local Storage**: All data is stored locally on your device for privacy
 
+![alt text](markdown-images/image.png)
+![alt text](markdown-images/image-1.png)
+![alt text](markdown-images/image-2.png)
 ## Installation
 
 > **Note**: This extension is currently in development and not yet published to the Raycast Store. You'll need to install it manually using the development setup below.
@@ -49,17 +52,17 @@ Regular breaks are essential for maintaining focus, reducing physical strain, an
    npm install
    ```
 
-3. **Start the development server**:
+3. **Install and start the extension**:
    ```bash
    npm run dev
    ```
    
    This will:
-   - Automatically load the extension in Raycast in development mode
-   - Enable hot reload (changes will be reflected immediately)
-   - Keep the extension active while the dev server is running
+   - Install the extension into Raycast
+   - Start the development server with hot reload enabled
+   - Make the extension available in Raycast
    
-   **Important**: Keep the terminal running `npm run dev` open while you want to use the extension. Closing it will stop the extension from working.
+   **Note**: The extension is installed after running this command. You can close the terminal and the extension will remain available in Raycast. If you make code changes, run `npm run dev` again to update the extension with your changes.
 
 4. **Optional: Build for production** (if you want to test the production build):
    ```bash
@@ -69,8 +72,6 @@ Regular breaks are essential for maintaining focus, reducing physical strain, an
 ## Usage
 
 ### Getting Started
-
-> **Note**: Make sure `npm run dev` is running in a terminal before using the extension.
 
 1. **Open the extension**: Press `Cmd + Space` (or your Raycast shortcut), then type "Health Breaks"
 2. **Configure settings**: Open "Configure Settings" to customize:
