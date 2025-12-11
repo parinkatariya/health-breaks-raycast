@@ -29,6 +29,7 @@ Regular breaks are essential for maintaining focus, reducing physical strain, an
 ![alt text](markdown-images/image.png)
 ![alt text](markdown-images/image-1.png)
 ![alt text](markdown-images/image-2.png)
+![alt text](markdown-images/image-4.png)
 ## Installation
 
 > **Note**: This extension is currently in development and not yet published to the Raycast Store. You'll need to install it manually using the development setup below.
