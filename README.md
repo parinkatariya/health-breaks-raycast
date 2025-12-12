@@ -2,6 +2,20 @@
 
 A Raycast extension for macOS that helps you maintain healthy work habits by reminding you to take regular breaks and tracking your break activities.
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Development](#development)
+- [Privacy](#privacy)
+- [Contributing](#contributing)
+- [License](#license)
+- [Author](#author)
+- [Support](#support)
+
 ## Purpose
 
 This extension is designed to promote better health and productivity by:
@@ -26,10 +40,19 @@ Regular breaks are essential for maintaining focus, reducing physical strain, an
 - 🎯 **Menu Bar Integration**: Quick access and break logging directly from your menu bar
 - 💾 **Local Storage**: All data is stored locally on your device for privacy
 
+### Menubar
 ![alt text](markdown-images/image.png)
+
+### Raycast command and configuration
 ![alt text](markdown-images/image-1.png)
+
+### Statistics Dashboard
 ![alt text](markdown-images/image-2.png)
+
+### Celebrate small wins (Confetti)
 ![alt text](markdown-images/image-4.png)
+
+
 ## Installation
 
 > **Note**: This extension is currently in development and not yet published to the Raycast Store. You'll need to install it manually using the development setup below.
