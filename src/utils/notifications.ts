@@ -1,4 +1,4 @@
-import { showHUD, showToast, Toast } from "@raycast/api";
+import { environment, LaunchType, showToast, Toast } from "@raycast/api";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { getLastReminderTime, setLastReminderTime } from "./storage";
@@ -37,7 +37,7 @@ export async function shouldShowReminder(): Promise<boolean> {
 
 /**
  * Shows a macOS system notification using osascript
- * This is needed for menu bar commands where showHUD doesn't work
+ * This is needed for menu bar/background commands where Toast/HUD APIs may be unavailable
  */
 async function showMacOSNotification(title: string, message: string): Promise<void> {
   // Escape single quotes for AppleScript
@@ -53,13 +53,21 @@ async function showMacOSNotification(title: string, message: string): Promise<vo
   try {
     await execAsync(`osascript -e '${script}'`);
   } catch (error) {
-    // If system notification fails, fall back to toast
+    // If system notification fails, only fall back to toast when a UI is available
     console.error("Failed to show macOS notification:", error);
-    await showToast({
-      style: Toast.Style.Success,
-      title,
-      message,
-    });
+    const canUseToast =
+      environment.launchType !== LaunchType.Background && environment.commandMode !== "menu-bar";
+    if (canUseToast) {
+      try {
+        await showToast({
+          style: Toast.Style.Success,
+          title,
+          message,
+        });
+      } catch (toastError) {
+        console.error("Failed to show Toast fallback:", toastError);
+      }
+    }
   }
 }
 
@@ -72,13 +80,16 @@ export async function showBreakReminder(): Promise<void> {
   const title = "Time for a Health Break! 💚";
   const message = "Take a moment to stand, stretch, or rest your eyes";
 
-  // Show notification based on user preference
-  if (preferences.notificationType === "hud") {
-    // Use macOS system notification (works in both regular and menu bar commands)
-    // showHUD doesn't work reliably in menu bar commands, so we use osascript
+  const isBackground = environment.launchType === LaunchType.Background;
+  const isMenuBar = environment.commandMode === "menu-bar";
+
+  // In background/menu-bar, Toast isn't available. Use macOS system notification.
+  if (isBackground || isMenuBar) {
+    await showMacOSNotification(title, message);
+  } else if (preferences.notificationType === "hud") {
+    // HUD isn't reliable for menu-bar commands; for view commands, toast is generally preferred.
     await showMacOSNotification(title, message);
   } else {
-    // Show Toast notification (in-app)
     await showToast({
       style: Toast.Style.Success,
       title,
@@ -97,12 +108,22 @@ export async function showBreakReminder(): Promise<void> {
 export async function showBreakLogged(type: string): Promise<void> {
   const preferences = getPreferences();
 
-  // Show toast notification in Raycast UI
-  await showToast({
-    style: Toast.Style.Success,
-    title: "Break Logged! ✅",
-    message: `${type} break recorded`,
-  });
+  const title = "Break Logged! ✅";
+  const message = `${type} break recorded`;
+
+  const isBackground = environment.launchType === LaunchType.Background;
+  const isMenuBar = environment.commandMode === "menu-bar";
+
+  // Toast isn't available in background/menu-bar; use system notification instead.
+  if (isBackground || isMenuBar) {
+    await showMacOSNotification(title, message);
+  } else {
+    await showToast({
+      style: Toast.Style.Success,
+      title,
+      message,
+    });
+  }
 
   // Show confetti to celebrate logging a break (if enabled)
   if (preferences.enableConfetti) {

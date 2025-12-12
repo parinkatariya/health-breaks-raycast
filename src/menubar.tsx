@@ -11,14 +11,10 @@ export default function Menubar() {
   const preferences = getPreferences();
 
   useEffect(() => {
-    loadStats();
-    checkReminder();
-    // Refresh every minute
-    const interval = setInterval(() => {
-      loadStats();
-      checkReminder();
-    }, 60000);
-    return () => clearInterval(interval);
+    // NOTE: This command is already configured with an `interval` in the manifest.
+    // Avoid keeping our own timers alive, otherwise Raycast (and `ray develop`) may time out the command.
+    void loadStats();
+    void checkReminder();
   }, []);
 
   async function loadStats() {
