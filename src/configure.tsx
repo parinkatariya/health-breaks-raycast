@@ -1,9 +1,24 @@
 // @ts-nocheck
+import { useMemo, useCallback } from "react";
 import { List, ActionPanel, Action, Icon, openExtensionPreferences } from "@raycast/api";
 import { getPreferences } from "./utils/preferences";
 
 export default function ConfigureView() {
-  const preferences = getPreferences();
+  const preferences = useMemo(() => getPreferences(), []);
+  
+  const openPreferences = useCallback(() => {
+    openExtensionPreferences();
+  }, []);
+  
+  // Memoize action panel
+  const preferencesAction = useMemo(
+    () => (
+      <ActionPanel>
+        <Action icon={Icon.Gear} title="Open Extension Preferences" onAction={openPreferences} />
+      </ActionPanel>
+    ),
+    [openPreferences]
+  );
 
   return (
     <List searchBarPlaceholder="Configure Health Breaks Settings">
@@ -17,15 +32,7 @@ export default function ConfigureView() {
               text: "Change in Preferences",
             },
           ]}
-          actions={
-            <ActionPanel>
-              <Action
-                icon={Icon.Gear}
-                title="Open Extension Preferences"
-                onAction={openExtensionPreferences}
-              />
-            </ActionPanel>
-          }
+          actions={preferencesAction}
         />
         <List.Item
           icon={preferences.enableNotifications ? Icon.Bell : Icon.BellDisabled}
@@ -36,15 +43,7 @@ export default function ConfigureView() {
               text: "Change in Preferences",
             },
           ]}
-          actions={
-            <ActionPanel>
-              <Action
-                icon={Icon.Gear}
-                title="Open Extension Preferences"
-                onAction={openExtensionPreferences}
-              />
-            </ActionPanel>
-          }
+          actions={preferencesAction}
         />
         {preferences.enableNotifications && (
           <List.Item
@@ -80,15 +79,7 @@ export default function ConfigureView() {
               text: "Change in Preferences",
             },
           ]}
-          actions={
-            <ActionPanel>
-              <Action
-                icon={Icon.Gear}
-                title="Open Extension Preferences"
-                onAction={openExtensionPreferences}
-              />
-            </ActionPanel>
-          }
+          actions={preferencesAction}
         />
       </List.Section>
 
@@ -97,15 +88,7 @@ export default function ConfigureView() {
           icon={Icon.Gear}
           title="Open Extension Preferences"
           subtitle="Modify reminder intervals, notifications, and break types"
-          actions={
-            <ActionPanel>
-              <Action
-                icon={Icon.Gear}
-                title="Open Extension Preferences"
-                onAction={openExtensionPreferences}
-              />
-            </ActionPanel>
-          }
+          actions={preferencesAction}
         />
       </List.Section>
 

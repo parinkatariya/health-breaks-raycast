@@ -6,6 +6,10 @@ import { getPreferences } from "./preferences";
 
 const execAsync = promisify(exec);
 
+// Cache for reminder check to avoid repeated storage reads
+let reminderCheckCache: { result: boolean; timestamp: number } | null = null;
+const REMINDER_CHECK_CACHE_TTL = 5000; // 5 seconds cache
+
 /**
  * Triggers Raycast confetti animation
  */
@@ -19,20 +23,32 @@ async function showConfetti(): Promise<void> {
 }
 
 export async function shouldShowReminder(): Promise<boolean> {
+  const now = Date.now();
+  
+  // Return cached result if still valid
+  if (reminderCheckCache && (now - reminderCheckCache.timestamp) < REMINDER_CHECK_CACHE_TTL) {
+    return reminderCheckCache.result;
+  }
+
   const preferences = getPreferences();
   if (!preferences.enableNotifications) {
+    reminderCheckCache = { result: false, timestamp: now };
     return false;
   }
 
   const intervalMs = preferences.reminderInterval * 60 * 1000;
   const lastReminder = await getLastReminderTime();
-  const now = Date.now();
 
+  let result: boolean;
   if (!lastReminder) {
-    return true;
+    result = true;
+  } else {
+    result = now - lastReminder >= intervalMs;
   }
 
-  return now - lastReminder >= intervalMs;
+  // Cache the result
+  reminderCheckCache = { result, timestamp: now };
+  return result;
 }
 
 /**

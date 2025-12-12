@@ -1,7 +1,41 @@
 // @ts-nocheck
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { List, ActionPanel, Action, Icon, Color, showToast, Toast } from "@raycast/api";
 import { getBreakStats, getBreaks, BreakRecord, clearAllBreaks, BreakStats } from "./utils/storage";
+
+// Cache for time formatting
+const timeFormatCache = new Map<number, string>();
+const TIME_CACHE_TTL = 60000; // 1 minute cache
+
+function formatTimestamp(timestamp: number): string {
+  const now = Date.now();
+  const cached = timeFormatCache.get(timestamp);
+  if (cached && (now - timestamp) < TIME_CACHE_TTL) {
+    return cached;
+  }
+
+  const date = new Date(timestamp);
+  const diffMs = now - timestamp;
+  const diffMins = Math.floor(diffMs / 60000);
+
+  let result: string;
+  if (diffMins < 1) {
+    result = "Just now";
+  } else if (diffMins < 60) {
+    result = `${diffMins}m ago`;
+  } else if (diffMins < 1440) {
+    result = `${Math.floor(diffMins / 60)}h ago`;
+  } else {
+    result = date.toLocaleString();
+  }
+
+  timeFormatCache.set(timestamp, result);
+  if (timeFormatCache.size > 100) {
+    timeFormatCache.clear();
+  }
+
+  return result;
+}
 
 export default function StatsView() {
   const [stats, setStats] = useState<BreakStats | null>(null);
@@ -9,34 +43,46 @@ export default function StatsView() {
   const [isLoading, setIsLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<"today" | "week" | "all">("week");
 
-  useEffect(() => {
-    loadStats();
-  }, [timeRange]);
-
-  async function loadStats() {
+  const loadStats = useCallback(async () => {
     setIsLoading(true);
-    const breakStats = await getBreakStats();
-    setStats(breakStats);
+    try {
+      const breakStats = await getBreakStats();
+      setStats(breakStats);
 
-    const allBreaks = await getBreaks();
-    const sortedBreaks = [...allBreaks].sort((a, b) => b.timestamp - a.timestamp);
-
-    let filteredBreaks = sortedBreaks;
-    if (timeRange === "today") {
+      const allBreaks = await getBreaks();
+      
+      // Optimize: Pre-calculate time boundaries
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      filteredBreaks = sortedBreaks.filter((b) => b.timestamp >= today.getTime());
-    } else if (timeRange === "week") {
-      const weekAgo = new Date();
+      const todayTime = today.getTime();
+      
+      const weekAgo = new Date(today);
       weekAgo.setDate(weekAgo.getDate() - 7);
-      filteredBreaks = sortedBreaks.filter((b) => b.timestamp >= weekAgo.getTime());
+      const weekAgoTime = weekAgo.getTime();
+
+      // Single pass: sort and filter
+      let filteredBreaks: BreakRecord[];
+      if (timeRange === "today") {
+        filteredBreaks = allBreaks.filter((b) => b.timestamp >= todayTime);
+      } else if (timeRange === "week") {
+        filteredBreaks = allBreaks.filter((b) => b.timestamp >= weekAgoTime);
+      } else {
+        filteredBreaks = allBreaks;
+      }
+
+      // Sort only what we need (top 50)
+      filteredBreaks.sort((a, b) => b.timestamp - a.timestamp);
+      setRecentBreaks(filteredBreaks.slice(0, 50));
+    } finally {
+      setIsLoading(false);
     }
+  }, [timeRange]);
 
-    setRecentBreaks(filteredBreaks.slice(0, 50));
-    setIsLoading(false);
-  }
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]);
 
-  async function handleClearAll() {
+  const handleClearAll = useCallback(async () => {
     const confirmed = await showToast({
       style: Toast.Style.Failure,
       title: "Clear All Data?",
@@ -52,25 +98,34 @@ export default function StatsView() {
       title: "Data Cleared",
       message: "All break records have been deleted",
     });
-  }
+  }, [loadStats]);
 
-  function formatTimestamp(timestamp: number): string {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-
-    if (diffMins < 1) return "Just now";
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
-    return date.toLocaleString();
-  }
-
-  function formatDuration(seconds?: number): string {
+  const formatDuration = useCallback((seconds?: number): string => {
     if (!seconds) return "N/A";
     if (seconds < 60) return `${seconds}s`;
     return `${Math.floor(seconds / 60)}m`;
-  }
+  }, []);
+
+  // Memoize sorted break types
+  const sortedBreakTypes = useMemo(() => {
+    if (!stats || Object.keys(stats.breaksByType).length === 0) return [];
+    return Object.entries(stats.breaksByType).sort(([, a], [, b]) => b - a);
+  }, [stats?.breaksByType]);
+
+  // Memoize clear action
+  const clearAction = useMemo(
+    () => (
+      <ActionPanel>
+        <Action
+          icon={Icon.Trash}
+          title="Clear All Data"
+          onAction={handleClearAll}
+          style={Action.Style.Destructive}
+        />
+      </ActionPanel>
+    ),
+    [handleClearAll]
+  );
 
   return (
     <List
@@ -118,22 +173,20 @@ export default function StatsView() {
         </List.Section>
       )}
 
-      {stats && Object.keys(stats.breaksByType).length > 0 && (
+      {sortedBreakTypes.length > 0 && (
         <List.Section title="Break Types Distribution">
-          {Object.entries(stats.breaksByType)
-            .sort(([, a], [, b]) => b - a)
-            .map(([type, count]) => {
-              const percentage =
-                stats.totalBreaks > 0 ? Math.round((count / stats.totalBreaks) * 100) : 0;
-              return (
-                <List.Item
-                  key={type}
-                  icon={Icon.Circle}
-                  title={type}
-                  subtitle={`${count} (${percentage}%)`}
-                />
-              );
-            })}
+          {sortedBreakTypes.map(([type, count]) => {
+            const percentage =
+              stats && stats.totalBreaks > 0 ? Math.round((count / stats.totalBreaks) * 100) : 0;
+            return (
+              <List.Item
+                key={type}
+                icon={Icon.Circle}
+                title={type}
+                subtitle={`${count} (${percentage}%)`}
+              />
+            );
+          })}
         </List.Section>
       )}
 
@@ -162,16 +215,7 @@ export default function StatsView() {
           icon={Icon.Trash}
           title="Clear All Data"
           subtitle="Delete all break records"
-          actions={
-            <ActionPanel>
-              <Action
-                icon={Icon.Trash}
-                title="Clear All Data"
-                onAction={handleClearAll}
-                style={Action.Style.Destructive}
-              />
-            </ActionPanel>
-          }
+          actions={clearAction}
         />
       </List.Section>
     </List>

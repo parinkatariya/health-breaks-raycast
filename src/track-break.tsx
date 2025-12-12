@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Form, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
 import { saveBreak, BreakRecord } from "./utils/storage";
 import { showBreakLogged } from "./utils/notifications";
@@ -14,9 +14,11 @@ export default function TrackBreakView({ onBreakLogged }: TrackBreakViewProps) {
   const [duration, setDuration] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const preferences = getPreferences();
+  
+  // Memoize preferences
+  const preferences = useMemo(() => getPreferences(), []);
 
-  async function handleSubmit() {
+  const handleSubmit = useCallback(async () => {
     if (!breakType) {
       await showToast({
         style: Toast.Style.Failure,
@@ -63,21 +65,25 @@ export default function TrackBreakView({ onBreakLogged }: TrackBreakViewProps) {
     } finally {
       setIsSubmitting(false);
     }
-  }
+  }, [breakType, duration, notes, onBreakLogged]);
+
+  // Memoize action panel
+  const submitAction = useMemo(
+    () => (
+      <ActionPanel>
+        <Action.SubmitForm
+          icon={Icon.Checkmark}
+          title="Log Break"
+          onSubmit={handleSubmit}
+          shortcut={{ modifiers: ["cmd"], key: "s" }}
+        />
+      </ActionPanel>
+    ),
+    [handleSubmit]
+  );
 
   return (
-    <Form
-      actions={
-        <ActionPanel>
-          <Action.SubmitForm
-            icon={Icon.Checkmark}
-            title="Log Break"
-            onSubmit={handleSubmit}
-            shortcut={{ modifiers: ["cmd"], key: "s" }}
-          />
-        </ActionPanel>
-      }
-    >
+    <Form actions={submitAction}>
       <Form.Dropdown
         id="breakType"
         title="Break Type"
